@@ -19,9 +19,10 @@ class FakeRetriever:
         self.search_result = search_result or []
         self.loaded_ids = None
         self.searched_k = None
+        self.setup_dim = None
 
-    def setup(self, _dim):
-        pass
+    def setup(self, dim):
+        self.setup_dim = dim
 
     def load(self, ids, _texts, _vecs):
         self.loaded_ids = list(ids)
@@ -103,6 +104,7 @@ def test_ingest_writes_manifest_atomically(tmp_path, monkeypatch):
     store = _store(tmp_path, monkeypatch)
     n = store.ingest()
     assert n > 0
+    assert store.retriever.setup_dim == EMBED_DIM
     manifest = json.loads(store.chunks_path.read_text(encoding="utf-8"))
     assert len(manifest) == n
     assert store.retriever.loaded_ids == list(manifest.keys())
@@ -116,8 +118,8 @@ def test_ingest_invalidates_manifest_before_rebuild(tmp_path, monkeypatch):
     store = _store(tmp_path, monkeypatch)
     _write_manifest(store, ["stale"])
 
-    def boom(_dim):
-        raise RuntimeError("setup exploded")
+    def boom(dim):
+        raise RuntimeError(f"setup exploded (dim={dim})")
 
     store.retriever.setup = boom
     with pytest.raises(RuntimeError, match="setup exploded"):
