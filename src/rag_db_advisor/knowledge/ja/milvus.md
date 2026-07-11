@@ -2,8 +2,9 @@
 
 ## 実測サマリ (rag-retriever-bench, MIRACL-ja, text-embedding-3-small 1536次元)
 
-- 1万件: 検索 p50 1.6ms / p95 1.8ms、recall@10 0.980（修正後。下記の罠を参照）
-- 取り込み 0.8秒 + flush/インデックス構築/ロード 6.7秒
+- 1万件: 検索 p50 1.5ms、recall@10 0.979（修正後。下記の罠を参照）
+- 10万件: 検索 p50 2.0ms、recall@10 0.940（サーバー型2位の速さ）
+- 取り込み 0.9秒/1万件・10秒/10万件 + flush/インデックス構築/ロード 6〜17秒
 - インデックス: HNSW (M=16, efConstruction=64, ef=100)、cosine
 - standalone は単一コンテナ（embedded etcd + local storage）で立つが、
   アーキテクチャ上は分散前提の最重量級

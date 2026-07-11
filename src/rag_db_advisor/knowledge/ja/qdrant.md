@@ -2,8 +2,9 @@
 
 ## 実測サマリ (rag-retriever-bench, MIRACL-ja, text-embedding-3-small 1536次元)
 
-- 1万件: 検索 p50 2.1ms / p95 2.6ms、recall@10 0.983（HNSW 勢トップタイ）
-- 取り込み 1.4秒（gRPC 経由）+ インデックス構築強制 0.5秒
+- 1万件: 検索 p50 2.0ms / p95 2.3ms、recall@10 0.983（HNSW 勢トップタイ）
+- 10万件: 検索 p50 3.3ms、**recall@10 0.947 = HNSW 勢トップ**（厳密検索 0.952 に肉薄）
+- 取り込み 1.6秒/1万件・18秒/10万件（gRPC 経由）+ インデックス構築強制 0.5〜1秒
 - インデックス: HNSW (m=16, ef_construct=64, hnsw_ef=100)、cosine
 
 ## 選定の目安

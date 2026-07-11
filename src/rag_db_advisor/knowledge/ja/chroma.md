@@ -2,8 +2,9 @@
 
 ## 実測サマリ (rag-retriever-bench, MIRACL-ja, text-embedding-3-small 1536次元)
 
-- 1万件 (embedded/in-process): 検索 p50 1.3ms / p95 1.5ms、recall@10 0.980
-- 取り込み 1.9秒、build_index 追加コスト 0（挿入時に構築）
+- 1万件 (embedded/in-process): 検索 p50 1.3ms、recall@10 0.980
+- 10万件: 検索 p50 1.7ms、recall@10 0.929
+- 取り込み 1.9秒/1万件・30秒/10万件、build_index 追加コスト 0（挿入時に構築）
 - インデックス: HNSW (M=16, construction_ef=64, search_ef=100)、cosine
 - 注意: embedded はネットワークホップがないため、サーバー型の p50 と
   直接比較してはいけない（別クラスとして読むこと）

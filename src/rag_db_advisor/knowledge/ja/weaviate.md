@@ -2,8 +2,9 @@
 
 ## 実測サマリ (rag-retriever-bench, MIRACL-ja, text-embedding-3-small 1536次元)
 
-- 1万件: 検索 p50 1.3ms / p95 1.5ms、recall@10 0.979（HNSW 勢トップタイ）
-- 取り込み 3.4秒（挿入時に HNSW 構築込み）、build_index 追加コスト 0
+- 1万件: 検索 p50 1.3ms、recall@10 0.979
+- 10万件: 検索 p50 1.8ms、recall@10 0.929。**サーバー型で最速**
+- 取り込み 3.4秒/1万件・32秒/10万件（挿入時に HNSW 構築込み）、build_index 追加コスト 0
 - インデックス: HNSW (max_connections=16, ef_construction=64, ef=100)、cosine
 
 ## 選定の目安
