@@ -24,8 +24,9 @@ dependencies = [
     "chromadb>=0.5",
     "mcp>=1.2",
     # The retrieval layer IS the benchmark's abstraction (dogfooding):
-    # evaluated interface in, winning backend out.
-    "rag-retriever-bench @ git+https://github.com/kenimo49/rag-retriever-bench",
+    # evaluated interface in, winning backend out. Pinned to a tag so a
+    # breaking change on the bench's main can't break installs here.
+    "rag-retriever-bench @ git+https://github.com/kenimo49/rag-retriever-bench@v0.1.0",
 ]
 
 [project.optional-dependencies]
