@@ -28,6 +28,9 @@ dependencies = [
     "rag-retriever-bench @ git+https://github.com/kenimo49/rag-retriever-bench",
 ]
 
+[project.optional-dependencies]
+dev = ["pytest>=8.0", "ruff>=0.6"]
+
 [project.scripts]
 rag-db-advisor = "rag_db_advisor.cli:main"
 
@@ -39,3 +42,14 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 rag_db_advisor = ["knowledge/**/*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 110
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]

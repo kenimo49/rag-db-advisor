@@ -9,8 +9,9 @@ from __future__ import annotations
 
 import json
 import re
+from collections.abc import Iterator
 from importlib import resources
-from typing import Any, Iterator
+from typing import Any
 
 # Traversable (not Path) so a zipped install still works.
 KNOWLEDGE_ROOT = resources.files("rag_db_advisor").joinpath("knowledge")

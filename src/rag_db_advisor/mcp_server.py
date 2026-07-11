@@ -94,7 +94,10 @@ def compare_backends(corpus_size: int = 100000) -> dict[str, Any]:
 
 @mcp.tool()
 def list_traps(backend: str = "") -> dict[str, Any]:
-    """実際に踏んだ運用の罠一覧を返す。backend 指定で絞り込み (pgvector/clickhouse/qdrant/weaviate/milvus/chroma/lancedb)。"""
+    """実際に踏んだ運用の罠一覧を返す。
+
+    backend 指定で絞り込み (pgvector/clickhouse/qdrant/weaviate/milvus/chroma/lancedb)。
+    """
     from .knowledge import iter_chunks
 
     # 運用ノートは「## 運用の罠」「## 運用の注意」節が1チャンクになっている
