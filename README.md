@@ -1,5 +1,9 @@
 # rag-db-advisor
 
+[![CI](https://github.com/kenimo49/rag-db-advisor/actions/workflows/ci.yml/badge.svg)](https://github.com/kenimo49/rag-db-advisor/actions/workflows/ci.yml)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
 A RAG that answers RAG-stack questions — every claim backed by
 [rag-retriever-bench](https://github.com/kenimo49/rag-retriever-bench)
 measurements. Ask it which vector backend fits your workload, what a
@@ -69,6 +73,22 @@ rag-db-advisor ask "pgvectorとQdrantどっち？" --llm                      # 
 - Methodology caveats baked into answers: embedded vs server latency is not
   directly comparable; numbers are MIRACL-ja + text-embedding-3-small on a
   single node — measure your own data before deciding
+
+## Design notes
+
+- The advisor never generates verdicts. It returns measured evidence and lets
+  the calling LLM (or human) synthesize the answer — retrieval failures
+  surface as explicit errors so nobody silently falls back to prior knowledge.
+- Every chunk in the knowledge base traces back to either a bundled bench
+  record (`knowledge/results/*.jsonl`) or a hand-written operational note
+  (`knowledge/ja/*.md`). Notes only cover behavior that was reproduced during
+  the underlying bench work — speculative advice is out of scope by policy.
+- The retriever imports rag-retriever-bench's own `BaseRetriever` and picks
+  Chroma because the bench data says every HNSW backend is quality-tied at
+  this corpus size. The advisor follows its own advice.
+
+Full write-up: [docs/methodology.md](docs/methodology.md). Extending the
+knowledge base: [docs/adding-knowledge.md](docs/adding-knowledge.md).
 
 ## License
 
