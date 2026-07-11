@@ -47,28 +47,54 @@ class AdvisorStore:
 
     # ---- ingest -----------------------------------------------------------
     def ingest(self) -> int:
+        self._require_api_key()
         chunks = list(iter_chunks())
         texts = [c["text"] for c in chunks]
         ids = [c["id"] for c in chunks]
         vecs = self._embed(texts)
-        self.retriever.setup(dim=EMBED_DIM)
+        # Invalidate the manifest first: a half-finished rebuild must read as
+        # "broken", never as the previous generation.
+        self.chunks_path.unlink(missing_ok=True)
+        self.retriever.setup(dim=EMBED_DIM)  # drops + recreates the collection
         self.retriever.load(ids, texts, vecs)
         self.retriever.build_index()
-        self.chunks_path.write_text(
+        tmp = self.chunks_path.with_suffix(".json.tmp")
+        tmp.write_text(
             json.dumps({c["id"]: c for c in chunks}, ensure_ascii=False, indent=1),
             encoding="utf-8",
         )
+        tmp.replace(self.chunks_path)
         return len(chunks)
 
     # ---- query ------------------------------------------------------------
     def retrieve(self, question: str, top_k: int = 6) -> list[dict[str, Any]]:
+        self._require_api_key()
         if not self.chunks_path.exists():
             raise RuntimeError("store is empty — run `rag-db-advisor ingest` first")
         if self._chunks is None:
             self._chunks = json.loads(self.chunks_path.read_text(encoding="utf-8"))
+        top_k = max(1, min(int(top_k), len(self._chunks)))
         qvec = self._embed([question])[0]
         ids = self.retriever.search(qvec, top_k)
-        return [self._chunks[i] for i in ids if i in self._chunks]
+        # Fail closed: an id the manifest doesn't know means the vector store
+        # and chunks.json are out of sync — evidence integrity is the product.
+        missing = [i for i in ids if i not in self._chunks]
+        if missing:
+            raise RuntimeError(
+                f"store/chunks mismatch ({len(missing)} unknown ids, e.g. {missing[0]}) — "
+                "run `rag-db-advisor ingest` to rebuild"
+            )
+        if not ids:
+            raise RuntimeError("search returned no results — run `rag-db-advisor ingest` to rebuild")
+        return [self._chunks[i] for i in ids]
+
+    @staticmethod
+    def _require_api_key() -> None:
+        if not os.environ.get("OPENAI_API_KEY"):
+            raise RuntimeError(
+                "OPENAI_API_KEY is not set — required to embed queries/chunks "
+                "(text-embedding-3-small; generation is done by the calling LLM)"
+            )
 
     # ---- embeddings -------------------------------------------------------
     def _embed(self, texts: list[str]) -> np.ndarray:

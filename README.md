@@ -31,7 +31,7 @@ Vector-DB comparisons are usually opinions. This one is a closed loop:
 ```bash
 pip install git+https://github.com/kenimo49/rag-db-advisor
 export OPENAI_API_KEY=sk-...   # embeddings only (text-embedding-3-small)
-rag-db-advisor ingest           # build the local store (~1 min, a few hundred chunks)
+rag-db-advisor ingest           # build the local store (54 chunks in v0.1, well under a minute)
 ```
 
 ## Use from Claude Code / Claude Desktop (MCP)

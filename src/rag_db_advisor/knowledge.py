@@ -10,10 +10,17 @@ from __future__ import annotations
 import json
 import re
 from importlib import resources
-from pathlib import Path
 from typing import Any, Iterator
 
-KNOWLEDGE_ROOT = Path(str(resources.files("rag_db_advisor"))) / "knowledge"
+# Traversable (not Path) so a zipped install still works.
+KNOWLEDGE_ROOT = resources.files("rag_db_advisor").joinpath("knowledge")
+
+
+def _entries(subdir: str, suffix: str):
+    root = KNOWLEDGE_ROOT.joinpath(subdir)
+    return sorted(
+        (e for e in root.iterdir() if e.name.endswith(suffix)), key=lambda e: e.name
+    )
 
 
 def iter_chunks() -> Iterator[dict[str, Any]]:
@@ -22,8 +29,9 @@ def iter_chunks() -> Iterator[dict[str, Any]]:
 
 
 def _note_chunks() -> Iterator[dict[str, Any]]:
-    for path in sorted((KNOWLEDGE_ROOT / "ja").glob("*.md")):
+    for path in _entries("ja", ".md"):
         text = path.read_text(encoding="utf-8")
+        stem = path.name.rsplit(".", 1)[0]
         title = text.splitlines()[0].lstrip("# ").strip()
         # 「# 見出し」ファイル冒頭 + 「## 節」単位で1チャンク。節は文脈が
         # 自己完結するようファイル見出しを前置する。
@@ -35,22 +43,23 @@ def _note_chunks() -> Iterator[dict[str, Any]]:
             if i > 0:
                 body = f"# {title}\n\n{body}"
             yield {
-                "id": f"note:{path.stem}#{i}",
+                "id": f"note:{stem}#{i}",
                 "text": body,
                 "source": f"knowledge/ja/{path.name}",
                 "kind": "note",
-                "topic": path.stem,
+                "topic": stem,
             }
 
 
 def _result_chunks() -> Iterator[dict[str, Any]]:
-    for path in sorted((KNOWLEDGE_ROOT / "results").glob("*.jsonl")):
+    for path in _entries("results", ".jsonl"):
+        stem = path.name.rsplit(".", 1)[0]
         for line_no, line in enumerate(path.read_text(encoding="utf-8").splitlines()):
             record = json.loads(line)
             if "error" in record:
                 continue
             yield {
-                "id": f"result:{path.stem}#{line_no}",
+                "id": f"result:{stem}#{line_no}",
                 "text": _render_result(record),
                 "source": f"rag-retriever-bench results/published/{path.name}",
                 "kind": "measurement",
@@ -86,7 +95,7 @@ def _render_result(r: dict[str, Any]) -> str:
 def load_result_tables() -> list[dict[str, Any]]:
     """Raw per-backend records grouped by corpus size, for compare_backends."""
     records = []
-    for path in sorted((KNOWLEDGE_ROOT / "results").glob("*.jsonl")):
+    for path in _entries("results", ".jsonl"):
         for line in path.read_text(encoding="utf-8").splitlines():
             record = json.loads(line)
             if "error" not in record:

@@ -34,8 +34,12 @@ def advise(question: str, top_k: int = 6) -> dict[str, Any]:
 
     返り値の evidence は rag-retriever-bench の実測レコードと運用ノートの
     チャンク。回答はこの evidence の範囲で合成し、数値には source を添えること。
+    失敗時は {"error": ..., "hint": ...} を返す (例外は投げない)。
     """
-    evidence = _get_store().retrieve(question, top_k)
+    try:
+        evidence = _get_store().retrieve(question, top_k)
+    except RuntimeError as exc:
+        return {"error": str(exc), "hint": "run `rag-db-advisor ingest` first"}
     return {
         "question": question,
         "evidence": evidence,
@@ -75,11 +79,16 @@ def compare_backends(corpus_size: int = 100000) -> dict[str, Any]:
     if not rows:
         sizes = sorted({r["corpus_size"] for r in load_result_tables()})
         return {"error": f"no measurements at corpus_size={corpus_size}", "available": sizes}
+    server = [r for r in rows if "embedded" not in str(r["mode"])]
+    embedded = [r for r in rows if "embedded" in str(r["mode"])]
     return {
         "corpus_size": corpus_size,
         "dataset": "MIRACL-ja (860 queries, human qrels), text-embedding-3-small",
-        "backends": sorted(rows, key=lambda r: r["p50_ms"]),
-        "caveat": "embedded (in-process) はネットワークホップがなく、server 型と直接比較不可",
+        # 別配列で返す: embedded は in-process でネットワークホップがなく、
+        # server 型と同列のレイテンシランキングにしてはいけない
+        "server_backends": sorted(server, key=lambda r: r["p50_ms"]),
+        "embedded_backends": sorted(embedded, key=lambda r: r["p50_ms"]),
+        "caveat": "embedded (in-process) はネットワークホップがなく、server 型とレイテンシ直接比較不可",
     }
 
 
