@@ -20,16 +20,16 @@ class FakeRetriever:
         self.loaded_ids = None
         self.searched_k = None
 
-    def setup(self, dim):
+    def setup(self, _dim):
         pass
 
-    def load(self, ids, texts, vecs):
+    def load(self, ids, _texts, _vecs):
         self.loaded_ids = list(ids)
 
     def build_index(self):
         pass
 
-    def search(self, vec, k):
+    def search(self, _vec, k):
         self.searched_k = k
         return self.search_result[:k]
 
@@ -116,7 +116,7 @@ def test_ingest_invalidates_manifest_before_rebuild(tmp_path, monkeypatch):
     store = _store(tmp_path, monkeypatch)
     _write_manifest(store, ["stale"])
 
-    def boom(dim):
+    def boom(_dim):
         raise RuntimeError("setup exploded")
 
     store.retriever.setup = boom
