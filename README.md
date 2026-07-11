@@ -4,6 +4,8 @@
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
+![Advisor console showing the question "which vector DB fits my workload?" above a grid of measurement evidence cards, flanked by a backend list and a trap catalog, with the caption "evidence in, advice out, nothing else"](docs/hero.jpg)
+
 A RAG that answers RAG-stack questions — every claim backed by
 [rag-retriever-bench](https://github.com/kenimo49/rag-retriever-bench)
 measurements. Ask it which vector backend fits your workload, what a
