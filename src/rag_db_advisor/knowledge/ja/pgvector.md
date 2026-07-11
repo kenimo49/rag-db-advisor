@@ -29,6 +29,17 @@ psycopg.errors.DiskFull: could not resize shared memory segment
 1万件では顕在化せず、10万件で初めて出る。対策は compose の `shm_size: 4g`。
 「DiskFull」という名前だがディスクではなく共有メモリの問題。
 
+### 数千行未満では planner が HNSW インデックスを使わない
+
+PostgreSQL の planner はコストベースで seq scan とインデックスを選ぶため、
+行数が少ないと HNSW インデックスが存在しても使われない（エラーも警告もなし）。
+実測では ef_search=100 のとき 2,048行 → seq scan、4,096行 → index scan
+（ef_search が大きいほどインデックス側のコスト見積もりが上がり、閾値も上がる）。
+
+seq scan は厳密検索なので品質はむしろ満点になり、劣化はレイテンシ側に出る。
+「小さいデータで検証 → インデックスなしで測っていた」という Qdrant の
+indexing_threshold と同型の罠。`EXPLAIN` で Index Scan を確認してから測ること。
+
 ### ef_search はセッション設定
 
 `SET hnsw.ef_search = 100` はセッション単位。コネクションプール経由では
